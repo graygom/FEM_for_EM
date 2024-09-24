@@ -12,10 +12,10 @@ import sympy as sp
 
 
 #==================================================
-# 1D case: analytic solution
+# 1.2 ELECTROSTATIC BVP AND THE ANALYTICAL SOLUTION
 #
 
-if True:
+if False:
 
     # symbols
     x = sp.symbols('x')         # position
@@ -49,5 +49,219 @@ if True:
     coefficients_dict = analytic_solution.as_coefficients_dict(x)
     for item in coefficients_dict.keys():
         print(item , ' > ', sp.simplify(coefficients_dict[item]))
+
+
+#==================================================
+# 1.3 THE FINITE ELEMENT METHOD
+#
+# numerical technique that is used to solve BVPs governed by a DE and a set of BCs
+#
+# representation of the domain w/ smaller subdomains called finite elements
+#
+# to form a linear system of equations, the governing DE and associated BCs must first be converted to
+# an integro-differential formulation either
+# (a) by minimizing a functional or
+# (b) using weighted-residual method such as the Galerkin approach
+#
+# two methods that are used to obtain the FE equations
+# (a) variational method and
+# (b) weighted-residual method
+#
+# variational method requires construction of a functional which
+# represents the energy associated with the BVP at hand
+#
+# functional is a function expressed in an integral form and has arguments that are functions themselves
+# -> function of functions
+# a stable or stationary solution to a BVP can be obtained by minimizing or maximizing the governing functional
+# 
+# weighted-residual method widely known as the Galerkin method
+# forming a residual directly from the PDE that is associated with BVP under study
+# does not require the use of a functional
+# residual is formed by transferring all terms of the PDE on one side
+# this residual is then multiplied bt as weight function and integrated over the domain of a single element
+#
+# major steps of Galerkin FEM for the solution of a BVP
+# 1. discretize the domain using finite elements
+# 2. choose proper interpolation functions (shape functions or basis functions)
+# 3. obtain the corresponding linear equations for a single element by
+#    first deriving the weak formulation of DE subject to a set of BCs
+# 4. for the global matrix system of equations through the assembly of all elements
+# 5. impose Dirichlet BCs 
+# 6. solve the linear system of equations using linear algebra techniques
+# 7. postprocess the results
+#
+
+
+#==================================================
+# 1.4 DOMAIN DISCRETIZATION
+#
+# domain of the problem [0.0, d]
+# Ne = number of elements
+# Nn = number of nodes
+# higher order elements
+#
+
+
+#==================================================
+# 1.5 INTERPOLATION FUNCTIONS (shape functions)
+#
+#  element along x-axis   >   element along ξ-axis (master element)
+#  regular coordinates    >   natural coordinate
+#  [x1, x2]               >   [-1, +1]
+#
+#  V(ξ) = V1 * N1(ξ) + V2 * N2(ξ)
+#
+#  N1(ξ), N2(ξ) = interpolation functions
+#
+# number of interpolation functions per element =  number of nodes or DoF that belong to the element
+#  DoF = degrees of freedom 
+#
+# N1(ξ) = ( 1 - ξ ) / 2
+# N2(ξ) = ( 1 + ξ ) / 2
+#
+
+if False:
+    x  = sp.symbols('x')
+    xi = sp.symbols('xi')
+
+    v1 = sp.symbols('v1')
+    v2 = sp.symbols('v2')
+
+    N1 = ( 1 - xi ) / 2
+    N2 = ( 1 + xi ) / 2
+
+    v = v1 * N1 + v2 * N2
+
+    print(N1)
+    print(N2)
+    print(v)
+
+
+#==================================================
+# 1.6 THE METHOD OF WEIGHTED RESIDUAL: THE GALERKIN APPROACH
+#
+
+if False:
+    
+    # symbols
+    x = sp.symbols('x')             # position
+    x1, x2 = sp.symbols('x1 x2')    # position
+    rho = sp.symbols('rho')         # charge density
+
+    # functions
+    v  = sp.Function('v')       # electric potential
+    ep = sp.Function('ep')      # electric permittivity
+    w  = sp.Function('w')       # weight function
+
+    # electromagnetism: electric displacement
+    D = ep(x) * ( -v(x).diff(x, 1) )
+
+    # poisson equation
+    poisson_eq_left = D.diff(x, 1)
+    poisson_eq_right = rho
+
+    # weighted residual
+    wr = w(x) * (poisson_eq_left - poisson_eq_right)
+
+    # weighted-integral equation
+    wi = sp.Integral(wr, (x, x1, x2))
+    
+    print(wr)
+
+
+#==================================================
+# 1.8 IMPOSITION OF BOUNDARY CONDITIONS
+#
+# imposing boundary conditions (BCs)
+# on the set of linear equations obtained from the weak formulation of the governing differential equation (DE)
+#
+# prior to imposing BCs,
+# the global matrix system (GMS) is singular and, thus, cannot be solved to obtain a unique solution
+#
+# a nonsingluar matrix system is obtained after imposing BCs associated with a given BVP
+#
+# (a) dirichlet BCs: only the primary unknown variable
+# (b) mixed BCs: both the promary unknown variable and its derivative
+#     neumann BCs: special case of the mixed BCs
+#
+# weak formulation of the governing DE over the entire FE domain results in
+# a system of N linear equations with N unknowns
+#
+# imposing M dirichlet BCs, the size of the final linear system of equations will be reduced to N - M
+#
+# K v = b    w/   imposing Vn = V0 (dirichlet BC)
+# -> n-th row & n-th column of system matrix K must be eliminated
+# -> n-th row of the unknown vector v must be eliminated
+# -> n-th row of RHS vector b must be eliminated
+# -> remaining RHS vector b must be updated
+#    bi = bi - Kin V0  for  i = 1, 2, ..., N; i != n
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+
+
+#==================================================
+# 1.9 FINITE ELEMENT SOLUTION OF THE ELECTROSTATIC BOUNDARY-VALUE PROBLEM
+#
+# computing the electric potential distribution between two parallel plates 
+
+if True:
+
+    # universal constants
+
+    ep0 = 8.85e-12
+    
+    # user inputs
+
+    d = 0.08        # distance between two plates [m]
+    vl = 1.0        # electric potential at the leftmost plate [V]
+    vr = 0.0        # electric potential at the rightmost plate [V]
+
+    epr = 1.0       # dielectric constant in the region between the plates
+    rho = 1e-8      # charge density in the region between the plates [C/m^3]
+
+    # FEM input
+    
+    Ne = 4
+
+    # each elements
+
+    le = d / Ne
+    
+    # calculating the element coefficient matrix Ke
+
+    Ke = np.zeros((2, 2), dtype=float)
+
+    ep0 * ep
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
