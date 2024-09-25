@@ -242,7 +242,7 @@ if True:
     
     Ne = 4
 
-    # each elements
+    # length of each element
 
     le = d / Ne
     
@@ -250,17 +250,81 @@ if True:
 
     Ke = np.zeros((2, 2), dtype=float)
 
-    ep0 * ep
+    Ke[0, 0] =  (ep0 * epr) / le
+    Ke[0, 1] = -(ep0 * epr) / le
+    Ke[1, 0] = -(ep0 * epr) / le
+    Ke[1, 1] =  (ep0 * epr) / le
 
+    # calculating fe
 
+    fe = np.zeros((2, 1), dtype=float)
 
+    fe[0] = - rho * le / 2.0
+    fe[1] = - rho * le / 2.0
 
+    # nodes
 
+    Nn = Ne + 1
 
+    # global matrix system
 
+    K = np.zeros((Nn, Nn), dtype=float)
+    f = np.zeros((Nn, 1), dtype=float)
+    
+    for cnt_e in range(Ne):
+        K[cnt_e:cnt_e+2, cnt_e:cnt_e+2] += Ke
+        f[cnt_e:cnt_e+2] += fe
 
+    # imposing dirichlet BCs of vl & vr
 
+    K_dbc = K[1:-1, 1:-1]
+    
+    f_dbc = f[1:-1]
+    f_dbc[0] += - K[1,0] * vl           # left
+    f_dbc[-1] += - K[-2,-1] * vr        # right
 
+    # solve global matrix system
+
+    v_dbc = np.linalg.solve(K_dbc, f_dbc)
+
+    # post processing 1
+
+    xe = []
+    
+    for cnt_n in range(Ne):
+        if cnt_n == 0:
+            xe.append(0.0)
+        xe.append(xe[-1] + le)
+
+    ve = np.vstack([np.array([vl]), v_dbc, np.array([vr])])
+
+    # post processing 2
+    
+    x = []
+    v = []
+
+    div = 100
+
+    x_xi = np.linspace(-1.0, +1.0, div, dtype=float)
+
+    for cnt_xe in range(len(xe)):
+        if cnt_xe < len(xe)-1:
+            if cnt_xe == 0:
+                x = np.linspace(xe[cnt_xe], xe[cnt_xe+1], div)
+                v = vl * (x - xe[cnt_xe]) / (xe[cnt_xe+1] - xe[cnt_xe]) 
+  
+
+    #
+    print(Ke)
+    print(fe)
+    print(K)
+    print(f)
+    print(K_dbc)
+    print(f_dbc)
+    print(v_dbc)
+    print(xe)
+    print(ve)
+    print(x)
 
 
 
