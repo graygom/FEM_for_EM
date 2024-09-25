@@ -195,15 +195,16 @@ if False:
 # -> n-th row of RHS vector b must be eliminated
 # -> remaining RHS vector b must be updated
 #    bi = bi - Kin V0  for  i = 1, 2, ..., N; i != n
-#
-#
-#
-#
-#
-#
-#
-#
-#
+# 
+# method of elimination 
+# the global node at which the Dirichlet BC is imposed must be eliminated
+# reducing the size of the governing matrix system
+# 
+# programming method of elimination 
+# more convenient to number the global nodes of the FE mesh in such a way that 
+# the nodes which correspond to Dirichlet BC sappear last
+# 
+# 
 #
 #
 #
