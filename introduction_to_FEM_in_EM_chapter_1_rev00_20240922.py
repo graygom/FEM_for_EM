@@ -203,15 +203,19 @@ if False:
 # programming method of elimination 
 # more convenient to number the global nodes of the FE mesh in such a way that 
 # the nodes which correspond to Dirichlet BC sappear last
-# 
+#
+# ep * dv / dx + alpha * v = beta
+#
 # global RHS vector: b = f + d
-#     [ D(1)1   ]
-# d = | 0 ...   ] 
-#     [ -D(Ne)2 ]
+#     [ D(1)1   ]   [ -ep(1) * dvd/dx @x(1)1  ]
+# d = | 0 ... 0 ] = | 0 ... 0.                |
+#     [ -D(Ne)2 ]   [  ep(Ne) * dv/dx @x(Ne)2 ]
 #
+# ep(Ne) * dv/dx @x(Ne)2 = beta - alpha * v@N
 #
+# Transferring alpha * v@N to the LHS of the matrix system is
+# equivalent to adding constant alpha to the KNN entry of the global coefficient matrix
 #
-
 
 
 #==================================================
