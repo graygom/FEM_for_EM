@@ -204,10 +204,10 @@ if False:
 # more convenient to number the global nodes of the FE mesh in such a way that 
 # the nodes which correspond to Dirichlet BC sappear last
 # 
-# 
-#
-#
-#
+# global RHS vector: b = f + d
+#     [ D(1)1   ]
+# d = | 0 ...   ] 
+#     [ -D(Ne)2 ]
 #
 #
 #
