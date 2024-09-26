@@ -311,7 +311,8 @@ if True:
         if cnt_xe < len(xe)-1:
             if cnt_xe == 0:
                 x = np.linspace(xe[cnt_xe], xe[cnt_xe+1], div)
-                v = vl * (x - xe[cnt_xe]) / (xe[cnt_xe+1] - xe[cnt_xe]) 
+                v = ve[cnt_xe] * (xe[cnt_xe+1] - x) / (xe[cnt_xe+1] - xe[cnt_xe]) + \
+                    ve[cnt_xe+1] * (x - xe[cnt_xe]) / (xe[cnt_xe+1] - xe[cnt_xe])
   
 
     #
