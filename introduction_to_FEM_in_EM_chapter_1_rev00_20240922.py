@@ -240,7 +240,7 @@ if True:
 
     # FEM input
     
-    Ne = 4
+    Ne = 10
 
     # length of each element
 
@@ -287,7 +287,7 @@ if True:
 
     v_dbc = np.linalg.solve(K_dbc, f_dbc)
 
-    # post processing 1
+    # post processing 1: element
 
     xe = []
     
@@ -295,10 +295,11 @@ if True:
         if cnt_n == 0:
             xe.append(0.0)
         xe.append(xe[-1] + le)
-
+        
+    xe = np.hstack(xe)
     ve = np.vstack([np.array([vl]), v_dbc, np.array([vr])])
-
-    # post processing 2
+    
+    # post processing 2: electric potential
     
     x = []
     v = []
@@ -313,22 +314,35 @@ if True:
                 x = np.linspace(xe[cnt_xe], xe[cnt_xe+1], div)
                 v = ve[cnt_xe] * (xe[cnt_xe+1] - x) / (xe[cnt_xe+1] - xe[cnt_xe]) + \
                     ve[cnt_xe+1] * (x - xe[cnt_xe]) / (xe[cnt_xe+1] - xe[cnt_xe])
-  
+                x = x[:-1]
+                v = v[:-1]
+            else:
+                temp_x = np.linspace(xe[cnt_xe], xe[cnt_xe+1], div)
+                temp_v = ve[cnt_xe] * (xe[cnt_xe+1] - temp_x) / (xe[cnt_xe+1] - xe[cnt_xe]) + \
+                         ve[cnt_xe+1] * (temp_x - xe[cnt_xe]) / (xe[cnt_xe+1] - xe[cnt_xe])
+                temp_x = temp_x[:-1]
+                temp_v = temp_v[:-1]
+                x = np.hstack([x, temp_x])
+                v = np.hstack([v, temp_v])
 
-    #
-    print(Ke)
-    print(fe)
-    print(K)
-    print(f)
-    print(K_dbc)
-    print(f_dbc)
-    print(v_dbc)
-    print(xe)
-    print(ve)
-    print(x)
+    # post processing 3: electric field
 
+    xe2 = (xe[1:] + xe[:-1]) / 2.0
+    exe = -(ve[1:] - ve[:-1]) / (xe[1:] - xe[:-1])
 
+    x2 = x[1:]
+    ex = -(v[1:] - v[:-1]) / (x[1:] - x[:-1])
+    
+    # plot
 
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].plot(xe, ve, 'o')
+    ax[0].plot(x,v, ':')
+    ax[0].grid(ls=':')
+    ax[1].plot(xe2, exe, 'o')
+    ax[1].plot(x2, ex, ':')
+    ax[1].grid(ls=':')
+    plt.show()
 
 
 
