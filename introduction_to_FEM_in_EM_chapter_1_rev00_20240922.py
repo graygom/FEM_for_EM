@@ -222,9 +222,21 @@ if False:
 #==================================================
 # 1.9 FINITE ELEMENT SOLUTION OF THE ELECTROSTATIC BOUNDARY-VALUE PROBLEM
 #
-# computing the electric potential distribution between two parallel plates 
+# computing the electric potential distribution between two parallel plates
+# 
+# numerical error between the FE solution (Vfe) and exact analytic solution (Vex)
+# (1) the area bounded by two curves
+#     as compared to the total area under the curve described by the exact solution
+# (2) computing L2 norm which represents the distance betweem two solutions
+#
+# electric field obtained from the numerical approach is shown to be constant over element
+# and discontinuous across element boundaries
+#
+# as the finite element mesh becomes increasingly denser, the numerical solution approaches
+# the exact analytical solution
+#
 
-if True:
+if False:
 
     # universal constants
 
@@ -344,6 +356,311 @@ if True:
     ax[1].plot(x2, ex, ':')
     ax[1].grid(ls=':')
     plt.show()
+
+
+#==================================================
+# 1.10 ONE-DIMENSIONAL HIGHER ORDER INTERPOLATION FUNCTIONS
+#
+# introducing higher order interpolation functions, quadratic and cubic
+#
+# numerical error will be substantially reduced with the use of
+# higher order elements as opposed to linear elements
+#
+#
+# (a) quadratic shape function used to interpolate the solution of BVP over an element
+#
+# two of these nodes conincide with the end of nodes of the element whereas
+# the third one must be an interior node
+#
+# x1_e @node1, X3_e @node 3, x2_e @node2  ->  -1, 0, +1 @natural coordinate system
+#
+# ξ = 2 * (x - x3) / (x2 - x1)  where  x3 = (x1 + x2) / 2
+# V(ξ) = V1_e * N1(ξ) + V2_e * N2(ξ) + V3_e * N3(ξ)
+#
+# N1(ξ), N2(ξ), N3(ξ): Lagrange shape function
+#
+# N1(ξ) = 1/2 * ξ * (ξ - 1)
+# N2(ξ) = 1/2 * ξ * (ξ + 1)
+# N3(ξ) = -1 * (ξ + 1) * (ξ - 1)
+#
+# x = x1_e * 1/2 * ξ * (ξ - 1) + x2_e * 1/2 * ξ * (ξ + 1) + x3_e * (1 + ξ) * (1 - ξ)
+#   = x3_e + ( x2_e - x1_e ) / 2 * ξ
+#
+# ξ = 2 * ( x - x3_e ) / ( x2_e - x1_e )
+#
+# 
+# (b) cubic elements, cubic shape functions
+#
+# two of these coincide with the end nodes of the element and other two correspond to interior points
+#
+# x1_e @node1, X3_e @node 3, X4_e @node 4, x2_e @node2  ->  -1, -1/3, +1/3, +1 @natural coordinate system 
+#
+# V(ξ) = V1_e * N1(ξ) + V2_e * N2(ξ) + V3_e * N3(ξ) + V4_e * N4(ξ)
+# x(ξ) = x1_e * N1(ξ) + x2_e * N2(ξ) + x3_e * N3(ξ) + x4_e * N4(ξ)
+#
+# N1(ξ) = -9/16 * (ξ + 1/3) * (ξ - 1/3) * (ξ - 1)
+# N2(ξ) = +9/16 * (ξ + 1) * (ξ + 1/3) * (ξ - 1/3)
+# N3(ξ) = 27/16 * (ξ + 1) * (ξ - 1/3) * (ξ - 1)
+# N4(ξ) = -27/16 * (ξ + 1) * (ξ + 1/3) * (ξ - 1)
+#
+# x3_e = (2 * x1_e + x2_e) / 3
+# x4_e = (x1_e + 2 * x2_e) / 3
+#
+# ξ = 2 * (x - xc_e) / (x2_e - x1_e)  where  xc_e = (x1_e + x2_e) / 2
+#
+#
+
+
+
+#==================================================
+# 1.11 ELEMENT MATRIX AND RIGHT-HAND-SIDE VECTOR USING QUADRATIC ELEMENTS
+#
+# weak formulation
+#
+# entries of the element coefficient matrix
+#
+# Kij_e = int_(x1_e)^(x2_e) [dNi/dx] * ep_e * [dNj/dx] dx  for  i, j = 1, 2, 3
+#
+# entries of RHS vector
+#
+# fi_e = int_(x1_e)^(x2_e) Ni * rho_v dx  for  i = 1, 2, 3
+#
+
+if True:
+
+    # symbols
+    x1, x2, x3 = sp.symbols('x1 x2 x3')
+    le = sp.symbols('le')
+    x = sp.symbols('x')
+    xi = sp.symbols('xi')
+    ep = sp.symbols('ep')
+    rho = sp.symbols('rho')
+
+    # functions 
+    N1 = sp.Function('N1')
+    N2 = sp.Function('N2')
+    N3 = sp.Function('N3')
+    
+    # x coordinate, xi coordinate
+    dxi_dx = sp.diff(sp.Rational(+2, 1) * (x-x3) / (x2-x1), x)
+    dxi_dx = dxi_dx.subs(x2-x1, le)
+    dx_dxi = 1/ dxi_dx
+
+    # Lagrange shape function
+    N1 = sp.Rational(+1, 2) * xi * (xi - 1)
+    N2 = sp.Rational(+1, 2) * xi * (xi + 1)
+    N3 = (1 + xi) * (1 - xi)
+    
+    dN1_dxi = sp.diff(N1, xi)
+    dN2_dxi = sp.diff(N2, xi)
+    dN3_dxi = sp.diff(N3, xi)
+
+    # element coefficent matrix
+    K11_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K12_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K13_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K21_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K22_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K23_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K31_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K32_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K33_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+
+    Ke = sp.Matrix([[K11_e, K12_e, K13_e], [K21_e, K22_e, K23_e], [K31_e, K32_e, K33_e]])
+
+    # RHS vector
+    f1_e = sp.integrate( -rho * N1 * dx_dxi, (xi, -1, 1))
+    f2_e = sp.integrate( -rho * N2 * dx_dxi, (xi, -1, 1))
+    f3_e = sp.integrate( -rho * N3 * dx_dxi, (xi, -1, 1))
+
+    fe = sp.Matrix([ [f1_e], [f2_e], [f3_e]])
+
+    # print
+    print('dxi/dx > ', dxi_dx)
+    print('dx/dxi > ', dx_dxi)
+    print(N1, ' > ', dN1_dxi)
+    print(N2, ' > ', dN2_dxi)
+    print(N3, ' > ', dN3_dxi)
+    print('K11_e = ', K11_e)
+    print('K12_e = ', K12_e)
+    print('K13_e = ', K13_e)
+    print('K21_e = ', K21_e)
+    print('K22_e = ', K22_e)
+    print('K23_e = ', K23_e)
+    print('K31_e = ', K31_e)
+    print('K32_e = ', K32_e)
+    print('K33_e = ', K33_e)
+    print('Ke = ', Ke)
+    print('Ke.shape = ', Ke.shape)
+    print('f1_e = ', f1_e)
+    print('f2_e = ', f2_e)
+    print('f3_e = ', f3_e)
+    print('fe = ', fe)
+    print('fe.shape = ', fe.shape)
+
+
+
+#==================================================
+# 1.12 ELEMENT MATRIX AND RIGHT-HAND-SIDE VECTOR USING CUBIC ELEMENTS
+#
+# weak formulation
+#
+# entries of the element coefficient matrix
+#
+# Kij_e = int_(x1_e)^(x2_e) [dNi/dx] * ep_e * [dNj/dx] dx  for  i, j = 1, 2, 3, 4
+#
+# entries of RHS vector
+#
+# fi_e = int_(x1_e)^(x2_e) Ni * rho_v dx  for  i = 1, 2, 3, 4
+#
+
+if False:
+
+    # symbols
+    x1, x2, x3, x4 = sp.symbols('x1 x2 x3 x4')
+    le = sp.symbols('le')
+    x = sp.symbols('x')
+    xi = sp.symbols('xi')
+    ep = sp.symbols('ep')
+    rho = sp.symbols('rho')
+
+    # functions 
+    N1 = sp.Function('N1')
+    N2 = sp.Function('N2')
+    N3 = sp.Function('N3')
+    N4 = sp.Function('N4')
+    
+    # x coordinate, xi coordinate
+    dxi_dx = sp.diff(sp.Rational(+2, 1) * (x-(x2+x1)/2) / (x2-x1), x)
+    dxi_dx = dxi_dx.subs(x2-x1, le)
+    dx_dxi = 1/ dxi_dx
+
+    # Lagrange shape function
+    N1 = sp.Rational(-9, 16) * (xi + sp.Rational(+1, 3)) * (xi - sp.Rational(+1, 3)) * (xi - 1)
+    N2 = sp.Rational(+9, 16) * (xi + 1) * (xi + sp.Rational(+1, 3)) * (xi - sp.Rational(+1, 3))
+    N3 = sp.Rational(+27, 16) * (xi + 1) * (xi - sp.Rational(+1, 3)) * (xi - 1)
+    N4 = sp.Rational(-27, 16) * (xi + 1) * (xi + sp.Rational(+1, 3)) * (xi - 1)
+
+    dN1_dxi = sp.diff(N1, xi)
+    dN2_dxi = sp.diff(N2, xi)
+    dN3_dxi = sp.diff(N3, xi)
+    dN4_dxi = sp.diff(N4, xi)
+
+    # element coefficent matrix
+    K11_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K12_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K13_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K14_e = sp.integrate( (dN1_dxi*dxi_dx) * ep * (dN4_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K21_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K22_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K23_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K24_e = sp.integrate( (dN2_dxi*dxi_dx) * ep * (dN4_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K31_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K32_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K33_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K34_e = sp.integrate( (dN3_dxi*dxi_dx) * ep * (dN4_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K41_e = sp.integrate( (dN4_dxi*dxi_dx) * ep * (dN1_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K42_e = sp.integrate( (dN4_dxi*dxi_dx) * ep * (dN2_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K43_e = sp.integrate( (dN4_dxi*dxi_dx) * ep * (dN3_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+    K44_e = sp.integrate( (dN4_dxi*dxi_dx) * ep * (dN4_dxi*dxi_dx) * dx_dxi, (xi, -1, +1))
+
+    Ke = sp.Matrix([ [K11_e, K12_e, K13_e, K14_e], [K21_e, K22_e, K23_e, K24_e], [K31_e, K32_e, K33_e, K34_e], [K44_e, K42_e, K43_e, K44_e] ])
+
+    # RHS vector
+    f1_e = sp.integrate( -rho * N1 * dx_dxi, (xi, -1, 1))
+    f2_e = sp.integrate( -rho * N2 * dx_dxi, (xi, -1, 1))
+    f3_e = sp.integrate( -rho * N3 * dx_dxi, (xi, -1, 1))
+    f4_e = sp.integrate( -rho * N4 * dx_dxi, (xi, -1, 1))
+
+    fe = sp.Matrix([ [f1_e], [f2_e], [f3_e], [f4_e]])
+    
+    #
+    print('dxi/dx > ', dxi_dx)
+    print('dx/dxi > ', dx_dxi)
+    print(N1, ' > ', dN1_dxi)
+    print(N2, ' > ', dN2_dxi)
+    print(N3, ' > ', dN3_dxi)
+    print(N4, ' > ', dN4_dxi)
+    print('K11_e = ', K11_e)
+    print('K12_e = ', K12_e)
+    print('K13_e = ', K13_e)
+    print('K14_e = ', K14_e)
+    print('K21_e = ', K21_e)
+    print('K22_e = ', K22_e)
+    print('K23_e = ', K23_e)
+    print('K24_e = ', K24_e)
+    print('K31_e = ', K31_e)
+    print('K32_e = ', K32_e)
+    print('K33_e = ', K33_e)
+    print('K34_e = ', K34_e)
+    print('K41_e = ', K41_e)
+    print('K42_e = ', K42_e)
+    print('K43_e = ', K43_e)
+    print('K44_e = ', K44_e)
+    print('Ke = ', Ke)
+    print('Ke.shape = ', Ke.shape)
+    print('f1_e = ', f1_e)
+    print('f2_e = ', f2_e)
+    print('f3_e = ', f3_e)
+    print('f4_e = ', f4_e)
+    print('fe = ', fe)
+    print('fe.shape = ', fe.shape)
+
+
+
+#==================================================
+# 1.13 POSTPROCESSING OF THE SOLUTION: QUADRATIC ELEMENTS
+#
+#
+#
+#
+
+if True:
+
+    # universal constants
+
+    ep0 = 8.85e-12
+    
+    # user inputs
+
+    d = 0.08        # distance between two plates [m]
+    vl = 1.0        # electric potential at the leftmost plate [V]
+    vr = 0.0        # electric potential at the rightmost plate [V]
+
+    epr = 1.0       # dielectric constant in the region between the plates
+    rho = 1e-8      # charge density in the region between the plates [C/m^3]
+
+    # FEM input
+    
+    Ne = 10
+
+    # length of each element
+
+    le = d / Ne
+    
+    # calculating the element coefficient matrix Ke
+
+    Ke = np.zeros((3, 3), dtype=float)
+
+    Ke[0, 0] = +7.0 * (ep0 * epr) / (3.0 * le)
+    Ke[0, 1] = +1.0 * (ep0 * epr) / (3.0 * le)
+    Ke[0, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[1, 0] = +1.0 * (ep0 * epr) / (3.0 * le)
+    Ke[1, 1] = +7.0 * (ep0 * epr) / (3.0 * le)
+    Ke[1, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[2, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[2, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[2, 2] = +16.0 * (ep0 * epr) / (3.0 * le)
+
+    print(Ke)
+
+
+
+
+
+
+
+
 
 
 
