@@ -632,7 +632,7 @@ if True:
 
     # FEM input
     
-    Ne = 10
+    Ne = 3
 
     # length of each element
 
@@ -642,18 +642,49 @@ if True:
 
     Ke = np.zeros((3, 3), dtype=float)
 
-    Ke[0, 0] = +7.0 * (ep0 * epr) / (3.0 * le)
-    Ke[0, 1] = +1.0 * (ep0 * epr) / (3.0 * le)
-    Ke[0, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
-    Ke[1, 0] = +1.0 * (ep0 * epr) / (3.0 * le)
-    Ke[1, 1] = +7.0 * (ep0 * epr) / (3.0 * le)
-    Ke[1, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
-    Ke[2, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
-    Ke[2, 2] = -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[0, 0] =  +7.0 * (ep0 * epr) / (3.0 * le)
+    Ke[0, 1] =  +1.0 * (ep0 * epr) / (3.0 * le)
+    Ke[0, 2] =  -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[1, 0] =  +1.0 * (ep0 * epr) / (3.0 * le)
+    Ke[1, 1] =  +7.0 * (ep0 * epr) / (3.0 * le)
+    Ke[1, 2] =  -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[2, 0] =  -8.0 * (ep0 * epr) / (3.0 * le)
+    Ke[2, 1] =  -8.0 * (ep0 * epr) / (3.0 * le)
     Ke[2, 2] = +16.0 * (ep0 * epr) / (3.0 * le)
 
-    print(Ke)
+    # calculating fe
 
+    fe = np.zeros((3, 1), dtype=float)
+
+    fe[0] = -1.0 * rho * le / 6.0
+    fe[1] = -1.0 * rho * le / 6.0
+    fe[2] = -2.0 * rho * le / 3.0
+
+    # nodes
+
+    Nn = 2 * Ne + 1
+
+    # global matrix system
+
+    K = np.zeros((Nn, Nn), dtype=float)
+    f = np.zeros((Nn, 1), dtype=float)
+    
+    for cnt_e in range(Ne):
+        # global node
+        if cnt_e == 0:
+            e_start = 2*cnt_e
+        else:
+            e_start = 2*cnt_e - 1    
+        e_end = 2*cnt_e + 1
+        e_quad = 2*cnt_e + 2
+
+        g_node = [e_start, e_end, e_quad]
+
+        # element coefficent matrix           
+        for cnt_row in range(3):
+            for cnt_col in range(3):
+                K[g_node[cnt_row], g_node[cnt_col]] += Ke[cnt_row, cnt_col]
+            f[g_node[cnt_row]] += fe[cnt_row]
 
 
 
