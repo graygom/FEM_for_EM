@@ -1,10 +1,13 @@
 TEXTBOOK
+--------
 
 A.C.Polycarpou - Introduction to the Finite Element Method in Electromagnetics (2006)
 
 
 
 Chapter 1. One-Dimensional Boundary-Value Problems
+--------------------------------------------------
+
 
 [REFERENCE]
 
@@ -40,6 +43,6 @@ Hall, 1988.
 
 
 Chapter 2. Two-Dimensional Boundary-Value Problems
-
+--------------------------------------------------
 
 
