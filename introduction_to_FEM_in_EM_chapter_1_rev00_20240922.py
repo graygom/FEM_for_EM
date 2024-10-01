@@ -611,9 +611,19 @@ if False:
 #==================================================
 # 1.13 POSTPROCESSING OF THE SOLUTION: QUADRATIC ELEMENTS
 #
+# primary unknown quantity = electrostatic potential
+# secondary unknown quantity = electric field
+#
+# [ V1_e V3_e V2_e ]
+#
+# V = V1_e * N1 + V2_e * N2 + V3_e * N3 
+#   = V1_e * 1/2 * ξ * (ξ - 1) + V2_e * 1/2 * ξ * (ξ + 1) + V3_e * 1/2 * (1 + ξ) * (1 - ξ)
+#
+# Ex = - dV/dx = - dV/dξ * dξ/dx = - 2/le * dV/dξ
+#    = - 2/le * ( V1_e * (ξ - 1/2) + V2_e * (ξ + 1/2) + V3_e * (-2 * ξ)  )
 #
 #
-#
+
 
 if True:
 
@@ -632,7 +642,7 @@ if True:
 
     # FEM input
     
-    Ne = 3
+    Ne = 5
 
     # length of each element
 
@@ -685,6 +695,118 @@ if True:
             for cnt_col in range(3):
                 K[g_node[cnt_row], g_node[cnt_col]] += Ke[cnt_row, cnt_col]
             f[g_node[cnt_row]] += fe[cnt_row]
+        
+    # imposing dirichlet BCs of vl & vr
+
+    K_dbc = np.copy(K)
+    f_dbc = np.copy(f)
+
+    K_dbc[0, 0] = 1.0       # left
+    K_dbc[-2,-2] = 1.0      # right
+
+    f_dbc[0] = vl           # left
+    f_dbc[-2] = vr          # right
+
+    # solve global matrix system
+
+    v_dbc = np.linalg.solve(K_dbc, f_dbc)
+
+    # post processing 1: position to node number mapping
+
+    pos_to_node = []
+
+    for cnt_node in range(Nn):
+        if cnt_node == 0:
+            pos_to_node.append(cnt_node)
+        elif cnt_node % 2 == 1:
+            pos_to_node.append( 2 * ( cnt_node // 2 ) + 2 )
+        elif cnt_node % 2 == 0:
+            pos_to_node.append( 2 * ( cnt_node // 2 ) - 1 )
+
+    print(pos_to_node)
+    
+    # post processing 2: element
+
+    xe = []
+    ve = []
+
+    for cnt_pos in pos_to_node:
+        if cnt_pos == 0:
+            xe.append(0.0)
+        else:
+            xe.append(xe[-1] + le/2.0)
+
+        ve.append(v_dbc[cnt_pos])
+
+    ve = np.hstack(ve)
+
+    xe = np.hstack(xe)
+    ve = np.hstack(ve)
+
+    # post processing 3: electric potential (interpolation)
+    
+    x = []
+    v = []
+
+    div = 100
+
+    x_xi = np.linspace(-1.0, +1.0, div, dtype=float)
+
+    for cnt_xe in range(len(xe)):
+            
+        # first element
+        if cnt_xe == 0:
+            start = cnt_xe
+            quad = cnt_xe + 1
+            end = cnt_xe + 2
+        
+            x = np.linspace(xe[start], xe[end], div)            
+            v = ve[start] / 2 * x_xi * (x_xi - 1.0) + \
+                ve[quad] * (1.0 + x_xi) * (1.0 - x_xi) + \
+                ve[end] / 2 * x_xi * (x_xi + 1.0)
+
+            x = x[:-1]
+            v = v[:-1]
+
+        # other element
+        elif (cnt_xe % 2 == 0) and (cnt_xe < len(xe) - 1):
+            start = cnt_xe
+            quad = cnt_xe + 1
+            end = cnt_xe + 2
+        
+            temp_x = np.linspace(xe[start], xe[end], div)
+            temp_v = ve[start] / 2 * x_xi * (x_xi - 1.0) + \
+                     ve[quad] * (1.0 + x_xi) * (1.0 - x_xi) + \
+                     ve[end] / 2 * x_xi * (x_xi + 1.0)
+            
+            temp_x = temp_x[:-1]
+            temp_v = temp_v[:-1]
+
+            x = np.hstack([x, temp_x])
+            v = np.hstack([v, temp_v])
+
+    # post processing 4: electric field (interpolation)
+
+    xe2 = (xe[1:] + xe[:-1]) / 2.0
+    exe = -(ve[1:] - ve[:-1]) / (xe[1:] - xe[:-1])
+
+    x2 = x[1:]
+    ex = -(v[1:] - v[:-1]) / (x[1:] - x[:-1])
+    
+    # plot
+
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].plot(xe, ve, 'o')
+    ax[0].plot(x,v, ':')
+    ax[0].grid(ls=':')
+    ax[1].plot(xe2, exe, 'o')
+    ax[1].plot(x2, ex, ':')
+    ax[1].grid(ls=':')
+    plt.show()
+    
+
+
+
 
 
 
