@@ -803,7 +803,75 @@ if True:
     ax[1].plot(x2, ex, ':')
     ax[1].grid(ls=':')
     plt.show()
+
+
+#
+# nonuniform charge distribution 
+#
+# rho_v = -rho_0 * ( 1 - x / d)**2
+#
+# -rho_0 at leftmost plate and a minimum value of 0 at the rightmost plate
+#
+# N1(ξ), N2(ξ), N3(ξ): Lagrange shape function
+#
+# N1(ξ) = 1/2 * ξ * (ξ - 1)
+# N2(ξ) = 1/2 * ξ * (ξ + 1)
+# N3(ξ) = -1 * (ξ + 1) * (ξ - 1)
+#
+# entries of RHS vector
+#
+# fi_e = int_(x1_e)^(x2_e) Ni * rho_v dx  for  i = 1, 2, 3
+#
+# 
+# 
+#
+#
+#    
+
+if True:
+
+    # symbols
+    x = sp.symbols('x')         # position
+    ep0 = sp.symbols('ep0')     # vacuum permittivity
+    epr = sp.symbols('epr')     # vacuum permittivity
+    rho0 = sp.symbols('rho0')     # charge density
+    d = sp.symbols('d')         # distance between two metal plates
+    v0 = sp.symbols('vo')       # electric potential at x = 0
     
+    # functions
+    v = sp.Function('v')        # electric potential
+
+    # electromagnetism: electric displacement
+    D = ( ep0 * epr ) * ( -v(x).diff(x, 1) )
+
+    # poisson equation
+    poisson_eq_left = D.diff(x, 1)
+    poisson_eq_right = -rho0 * ( 1 - x/d )**2
+    poisson_eq = sp.Eq(poisson_eq_left, poisson_eq_right)
+    
+    # boundary conditions: Dirichlet or essential boundary conditions
+    bc = {}
+    bc[v(0)] = v0
+    bc[v(d)] = 0.0
+    
+    # solve ODE w/ BCs
+    analytic_solution = sp.dsolve(poisson_eq, v(x), ics=bc)
+    analytic_solution = analytic_solution.rhs
+
+    # simplify solution
+    coefficients_dict = analytic_solution.as_coefficients_dict(x)
+    for item in coefficients_dict.keys():
+        print(item , ' > ', sp.simplify(coefficients_dict[item]))
+
+    # shape functions
+
+    N1 = 1/2
+
+    # element RHS vector
+
+    
+
+
 
 
 
