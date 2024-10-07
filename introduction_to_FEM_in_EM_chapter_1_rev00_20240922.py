@@ -805,7 +805,7 @@ if True:
     plt.show()
 
 
-#
+##
 # nonuniform charge distribution 
 #
 # rho_v = -rho_0 * ( 1 - x / d)**2
@@ -832,10 +832,12 @@ if True:
 
     # symbols
     x = sp.symbols('x')         # position
+    xi = sp.symbols('xi')         # natural coordinate
     ep0 = sp.symbols('ep0')     # vacuum permittivity
     epr = sp.symbols('epr')     # vacuum permittivity
     rho0 = sp.symbols('rho0')     # charge density
     d = sp.symbols('d')         # distance between two metal plates
+    le = sp.symbols('le')         # distance in element
     v0 = sp.symbols('vo')       # electric potential at x = 0
     
     # functions
@@ -865,9 +867,18 @@ if True:
 
     # shape functions
 
-    N1 = 1/2
+    N1 = 1/2 * xi * (xi - 1)
+    N2 = 1/2 * xi * (xi + 1)
+    N3 = (1 + xi) * (1 - xi)
+
+    dx_dxi = le / 2
+
+    print(N1)
 
     # element RHS vector
+
+    
+
 
     
 
