@@ -318,13 +318,46 @@ if True:
 #==================================================
 # 2.4 METHOD OF WEIGHTED RESIDUAL: THE GALERKIN APPROACH
 #
-# 1) constructing the weighted residual for a single element with domain
+# weak formulation of the problem
+#   -> constructing the weighted residual for a single element with domain
 #
+# minimizing element residual
+#   -> multiplying element residual with a weight function
+#      then integrate the result over the area of the element,
+#      and finally set the integral to zero
 #
-#
-#
-#
-#
-#
+
+if True:
+
+    # symbols
+    x, y = sp.symbols('x, y')
+    ax, ay, b, g = sp.symbols('ax, ay, b, g')
+
+    # function
+    u = sp.Function('u')
+    w = sp.Function('w')
+    
+    # problem
+    problem_lhs = ( ax * u(x, y).diff(x, 1) ).diff(x, 1) + ( ay * u(x, y).diff(y, 1) ).diff(y, 1) + b * u(x, y)
+    problem_rhs = g
+
+    # element residual
+    residual = problem_lhs - problem_rhs
+    
+    residual_w = residual * w(x, y)
+    residual_w = residual_w.expand()
+
+    # display
+    print('problem LHS = ', problem_lhs)
+    print('problem RHS = ', problem_rhs)
+    print('residual = ', residual)
+    print('residual_w = ', residual_w)
+
+
+
+
+
+
+
 
 
