@@ -56,7 +56,7 @@ if False:
 
 
 #==================================================
-# 1.2 DOMAIN DISTRETIZATION
+# 2.2 DOMAIN DISTRETIZATION
 #
 # mesh generation
 #
@@ -77,7 +77,7 @@ if False:
 
 
 #==================================================
-# 1.3 INTERPOLATION FUNCTIONS
+# 2.3 INTERPOLATION FUNCTIONS
 #
 # proper interpolation functions
 #
@@ -191,5 +191,140 @@ if True:
 if True:
 
     # symbols
+    x, y = sp.symbols('x, y')                           #
+    xi, eta = sp.symbols('ξ, η')                        # natural coordinate system
+    c1, c2, c3, c4 = sp.symbols('c1, c2, c3, c4')       #
+
+    # shape function N1
+    N1_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+    
+    N1_xieta_node1 = N1_xieta.subs({xi:-1.0, eta:-1.0}) - 1.0
+    N1_xieta_node2 = N1_xieta.subs({xi:+1.0, eta:-1.0})
+    N1_xieta_node3 = N1_xieta.subs({xi:+1.0, eta:+1.0})
+    N1_xieta_node4 = N1_xieta.subs({xi:-1.0, eta:+1.0})
+
+    N1_xieta_eqs = [N1_xieta_node1, N1_xieta_node2, N1_xieta_node3, N1_xieta_node4]
+    N1_xieta_sol = sp.solve(N1_xieta_eqs, [c1, c2, c3, c4], dict=True)
+
+    for item in N1_xieta_sol[0].keys():
+        N1_xieta = N1_xieta.subs(item, N1_xieta_sol[0][item])
+
+    N1_xieta = N1_xieta.factor()
+
+    # shape function N2
+    N2_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+    
+    N2_xieta_node1 = N2_xieta.subs({xi:-1.0, eta:-1.0})
+    N2_xieta_node2 = N2_xieta.subs({xi:+1.0, eta:-1.0}) - 1.0
+    N2_xieta_node3 = N2_xieta.subs({xi:+1.0, eta:+1.0})
+    N2_xieta_node4 = N2_xieta.subs({xi:-1.0, eta:+1.0})
+
+    N2_xieta_eqs = [N2_xieta_node1, N2_xieta_node2, N2_xieta_node3, N2_xieta_node4]
+    N2_xieta_sol = sp.solve(N2_xieta_eqs, [c1, c2, c3, c4], dict=True)
+
+    for item in N2_xieta_sol[0].keys():
+        N2_xieta = N2_xieta.subs(item, N2_xieta_sol[0][item])
+
+    N2_xieta = N2_xieta.factor()
+
+    # shape function N3
+    N3_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+    
+    N3_xieta_node1 = N3_xieta.subs({xi:-1.0, eta:-1.0})
+    N3_xieta_node2 = N3_xieta.subs({xi:+1.0, eta:-1.0})
+    N3_xieta_node3 = N3_xieta.subs({xi:+1.0, eta:+1.0}) - 1.0
+    N3_xieta_node4 = N3_xieta.subs({xi:-1.0, eta:+1.0})
+
+    N3_xieta_eqs = [N3_xieta_node1, N3_xieta_node2, N3_xieta_node3, N3_xieta_node4]
+    N3_xieta_sol = sp.solve(N3_xieta_eqs, [c1, c2, c3, c4], dict=True)
+
+    for item in N3_xieta_sol[0].keys():
+        N3_xieta = N3_xieta.subs(item, N3_xieta_sol[0][item])
+
+    N3_xieta = N3_xieta.factor()
+
+    # shape function N4
+    N4_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+    
+    N4_xieta_node1 = N4_xieta.subs({xi:-1.0, eta:-1.0})
+    N4_xieta_node2 = N4_xieta.subs({xi:+1.0, eta:-1.0})
+    N4_xieta_node3 = N4_xieta.subs({xi:+1.0, eta:+1.0})
+    N4_xieta_node4 = N4_xieta.subs({xi:-1.0, eta:+1.0}) - 1.0
+
+    N4_xieta_eqs = [N4_xieta_node1, N4_xieta_node2, N4_xieta_node3, N4_xieta_node4]
+    N4_xieta_sol = sp.solve(N4_xieta_eqs, [c1, c2, c3, c4], dict=True)
+
+    for item in N4_xieta_sol[0].keys():
+        N4_xieta = N4_xieta.subs(item, N4_xieta_sol[0][item])
+
+    N4_xieta = N4_xieta.factor()
+
+    # display
+    print('N1_xieta = ', N1_xieta)
+    print('N2_xieta = ', N2_xieta)
+    print('N3_xieta = ', N3_xieta)
+    print('N4_xieta = ', N4_xieta)
+    print('')
+
+
+#
+# arbitrary point (ξ, η) inside the master quadrilateral element
+#
+
+if True:
+
+    # symbols
+    x1_e, x2_e, x3_e, x4_e = sp.symbols('x1_e, x2_e, x3_e, x4_e')
+    y1_e, y2_e, y3_e, y4_e = sp.symbols('y1_e, y2_e, y3_e, y4_e')
+    
+    # primary unknown quantity
+    x = x1_e *  N1_xieta + x2_e *  N2_xieta + x3_e *  N3_xieta + x4_e *  N4_xieta
+    y = y1_e *  N1_xieta + y2_e *  N2_xieta + y3_e *  N3_xieta + y4_e *  N4_xieta
+
+    x = x.expand()
+    y = y.expand()
+
+    #
+    x_xieta = x.coeff(xi*eta)
+    x_temp = x - x_xieta * xi * eta
+    x_temp = x_temp.simplify()
+    x_xi = x_temp.coeff(xi)
+    x_eta = x_temp.coeff(eta)
+    x_const = x_temp - x_xi * xi - x_eta * eta
+    x_const = x_const.simplify()
+
+    #
+    y_xieta = y.coeff(xi*eta)
+    y_temp = y - y_xieta * xi * eta
+    y_temp = y_temp.simplify()
+    y_xi = y_temp.coeff(xi)
+    y_eta = y_temp.coeff(eta)
+    y_const = y_temp - y_xi * xi - y_eta * eta
+    y_const = y_const.simplify()
+    
+    #
+    print('x_const = ', x_const)
+    print('x_xi coeff = ', x_xi)
+    print('x_eta coeff = ', x_eta)
+    print('x_xieta coeff = ', x_xieta)
+    print('')
+    print('y_const = ', y_const)
+    print('y_xi coeff = ', y_xi)
+    print('y_eta coeff = ', y_eta)
+    print('y_xieta coeff = ', y_xieta)
+    print('')
+
+    
+#==================================================
+# 2.4 METHOD OF WEIGHTED RESIDUAL: THE GALERKIN APPROACH
+#
+# 1) constructing the weighted residual for a single element with domain
+#
+#
+#
+#
+#
+#
+#
 
 
