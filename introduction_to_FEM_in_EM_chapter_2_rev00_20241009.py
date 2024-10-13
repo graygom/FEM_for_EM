@@ -355,6 +355,164 @@ if True:
 
 
 
+#==================================================
+# 2.5 EVALUATION OF ELEMENT MATRICES AND VECTORS
+#
+# linear triangluar element
+# -------------------------
+#
+# --- matrix M_e ---
+# M_ij_e = - int_omega_e [ ax (∂Ni/∂x) (∂Nj/∂x) + ay (∂Ni/∂y) (∂Nj/∂y) ] dx dy  where ax and ay are constants 
+#
+# --- interpolation functions ---
+# N1 = 1 - ξ - η
+# N2 = ξ
+# N3 = η
+#
+# --- x and y coordinates of any point inside an element
+# x = x1_e + (x2_e - x1_e) ξ + (x3_e - x1_e) η
+# y = y1_e + (y2_e - y1_e) ξ + (y3_e - y1_e) η
+#
+# --- differentiation
+# ∂N/∂ξ = ∂N/∂x ∂x/∂ξ + ∂N/∂y ∂y/∂ξ
+# ∂N/∂η = ∂N/∂x ∂x/∂η + ∂N/∂y ∂y/∂η
+#
+# [ ∂N/∂ξ ]     [ ∂x/∂ξ  ∂y/∂ξ  ] [ ∂N/∂x ]
+# [         ]  =  [                   ] [         ]
+# [ ∂N/∂η ]     [ ∂x/∂η  ∂y/∂η ] [ ∂N/∂y ]
+#
+#     [ ∂x/∂ξ  ∂y/∂ξ  ]    [ (x2_e - x1_e)  (y2_e - y1_e)  ]
+# J = [                   ] =  [                               ]     Jacobian matrix
+#     [ ∂x/∂η  ∂y/∂η ]     [ (x3_e - x1_e)  (y3_e - y1_e)  ]
+#
+# [ ∂N/∂x ]         [ ∂N/∂ξ ]
+# [         ] = J^-1  [         ]
+# [ ∂N/∂y ]         [ ∂N/∂η ] 
+#
+#
+#        [ (y3_e - y1_e)  -(y2_e - y1_e)  ]
+# J^-1 = [                                ]  /  det(J)
+#        [ -(x3_e - x1_e)  (x2_e - x1_e)  ]
+#
+# where det(J) = (x2_e - x1_e) (y3_e - y1_e) - (x3_e - x1_e) (y2_e - y1_e) = 2 A_e
+# where A_e = area of the triangle
+#
+# coordinate transformation
+# -------------------------
+#
+# [ ∂N1/∂x ]          [ ∂N1/∂ξ ]    [ (y2_e - y3_e) ]
+# [          ] = J^-1 * [          ]  = [               ]  /  det(J) 
+# [ ∂N1/∂y ]          [ ∂N1/∂η ]    [ (x3_e - x1_e) ]
+#
+# [ ∂N2/∂x ]          [ ∂N2/∂ξ ]    [ (y3_e - y1_e) ]
+# [          ] = J^-1 * [          ]  = [               ]  /  det(J) 
+# [ ∂N2/∂y ]          [ ∂N2/∂η ]    [ (x1_e - x3_e) ]
+#
+# [ ∂N3/∂x ]          [ ∂N3/∂ξ ]    [ (y1_e - y2_e) ]
+# [          ] = J^-1 * [          ]  = [               ]  /  det(J) 
+# [ ∂N3/∂y ]          [ ∂N3/∂η ]    [ (x2_e - x1_e) ]
+#
+# to evaluate the double integral of M_ij_e,
+# it is necessary to change the variables of integration from x and y to xi and eta.
+# -> instead of interating over the triangular element on the regular coordinate system,
+#    more convenient on the master trianlge using the natural coordinate system.
+#
+# M_ij_e = - int_omega_e [ ax (∂Ni/∂x) (∂Nj/∂x) + ay (∂Ni/∂y) (∂Nj/∂y) ] dx dy
+#        = - int_omega_[0 1]_[0 1-eta]  f( x(ξ, η), y(ξ, η) )  |J|  dξ dη
+#            (Jacobi transformation by German mathematician Carl Gustav Jacob Jacobi)   
+#
+#
+#
+#
+#
+#
+#
+
+if True:
+
+    # symbols
+    x1_e, x2_e, x3_e = sp.symbols('x1_e, x2_e, x3_e')
+    y1_e, y2_e, y3_e = sp.symbols('y1_e, y2_e, y3_e')
+
+    ax, ay = sp.symbols('ax, ay')
+
+    xi, eta = sp.symbols('xi, eta')
+
+    # interpolation functions
+    N1 = 1 - xi - eta
+    N2 = xi
+    N3 = eta
+
+    # x, y coordinates of any point inside an element
+    x = N1 * x1_e + N2 * x2_e + N3 * x3_e
+    x = x.expand()
+    y = N1 * y1_e + N2 * y2_e + N3 * y3_e
+    y = y.expand()
+    
+    x_xi = x.coeff(xi)
+    x_eta = x.coeff(eta)
+    x_const = x - x_xi * xi - x_eta * eta
+    x_const = x_const.expand()
+
+    y_xi = y.coeff(xi)
+    y_eta = y.coeff(eta)
+    y_const = y - y_xi * xi - y_eta * eta
+    y_const = y_const.expand()
+
+    # Jacobian matrix
+    J = sp.Matrix([ [ x.diff(xi, 1), y.diff(xi, 1) ], [ x.diff(eta, 1), y.diff(eta, 1) ] ])
+    J = J.expand()
+    Jinv = J.inv()
+    det_J = J.det()
+    Jinv = Jinv * det_J     # normalization
+
+    # coordinate transformation
+    dN1_x_y = Jinv * sp.Matrix(2, 1, [N1.diff(xi, 1), N1.diff(eta, 1)])
+    dN1_x_y = dN1_x_y       # / det_J is needed
+    dN1_dx = dN1_x_y[0]     # / det_J is needed
+    dN1_dy = dN1_x_y[1]     # / det_J is needed
+
+    dN2_x_y = Jinv * sp.Matrix(2, 1, [N2.diff(xi, 1), N2.diff(eta, 1)])
+    dN2_x_y = dN2_x_y       # / det_J is needed
+    dN2_dx = dN2_x_y[0]     # / det_J is needed
+    dN2_dy = dN2_x_y[1]     # / det_J is needed
+
+    dN3_x_y = Jinv * sp.Matrix(2, 1, [N3.diff(xi, 1), N3.diff(eta, 1)])
+    dN3_x_y = dN3_x_y       # / det_J is needed
+    dN3_dx = dN3_x_y[0]     # / det_J is needed
+    dN3_dy = dN3_x_y[1]     # / det_J is needed
+
+    # M11
+    M11_e = ( ax * dN1_dx * dN1_dx + ay * dN1_dy * dN1_dy )
+    M11_e = sp.integrate(M11_e, (xi, 0, 1-eta))
+    M11_e = -sp.integrate(M11_e, (eta, 0, 1))
+    M11_e = M11_e.expand()
+    M11_e = M11_e.factor(ax)
+    M11_e = M11_e.factor(ay)
+
+    
+                  
+    # display
+    print('shape function N1 = ', N1)
+    print('shape function N2 = ', N2)
+    print('shape function N3 = ', N3)
+    print('x = ', x)
+    print('x_xi = ', x_xi)
+    print('x_eta = ', x_eta)
+    print('x_const = ', x_const)
+    print('y = ', y)
+    print('y_xi = ', y_xi)
+    print('y_eta = ', y_eta)
+    print('y_const = ', y_const)
+    print('J = ', J)
+    print('J^-1 * det(J) = ', Jinv)
+    print('det(J) = ', det_J)
+    print('dN1_x_y / det(J) = ', dN1_x_y)
+    print('dN2_x_y / det(J) = ', dN2_x_y)
+    print('dN3_x_y / det(J) = ', dN3_x_y)
+    print('M11_e = ', M11_e)
+
+
 
 
 
