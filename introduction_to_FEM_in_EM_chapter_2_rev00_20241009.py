@@ -314,7 +314,8 @@ if True:
     print('y_xieta coeff = ', y_xieta)
     print('')
 
-    
+
+
 #==================================================
 # 2.4 METHOD OF WEIGHTED RESIDUAL: THE GALERKIN APPROACH
 #
@@ -327,7 +328,7 @@ if True:
 #      and finally set the integral to zero
 #
 
-if True:
+if False:
 
     # symbols
     x, y = sp.symbols('x, y')
@@ -342,16 +343,23 @@ if True:
     problem_rhs = g
 
     # element residual
-    residual = problem_lhs - problem_rhs
+    element_residual = problem_lhs - problem_rhs
     
-    residual_w = residual * w(x, y)
-    residual_w = residual_w.expand()
+    element_residual_w = element_residual * w(x, y)
+    element_residual_w = element_residual_w.expand()
+
+    # 
+    identity_x_lhs  = w(x, y) * ( ax * u(x, y).diff(x, 1) ).diff(x, 1)
+    identity_x_rhs  = ( w(x, y) * ax * u(x, y).diff(x, 1) ).diff(x, 1)
+    identity_x_rhs -= w(x, y).diff(x, 1) * ( ax * u(x, y).diff(x, 1) )
 
     # display
     print('problem LHS = ', problem_lhs)
     print('problem RHS = ', problem_rhs)
-    print('residual = ', residual)
-    print('residual_w = ', residual_w)
+    print('element residual = ', element_residual)
+    print('element residual_w = ', element_residual_w)
+    print('identity_x_lhs = ', identity_x_lhs)
+    print('identity_x_rhs = ', identity_x_rhs)
 
 
 
