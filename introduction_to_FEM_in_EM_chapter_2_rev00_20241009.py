@@ -497,7 +497,18 @@ if True:
     M11_e = M11_e.expand()
     M11_e = M11_e.factor(ax)
     M11_e = M11_e.factor(ay)
+    M11_e = M11_e.ratsimp()
 
+    #
+    M11_e_sym = M11_e.free_symbols
+    M11_e_sym = {ax, ay}
+
+    for sym in M11_e_sym:
+        print(sym, M11_e.factor(sym))
+        print(sym, M11_e.coeff(sym))
+        print(sym, M11_e.coeff(sym).factor())
+
+    print('')
     
                   
     # display
@@ -519,6 +530,9 @@ if True:
     print('dN2_x_y / det(J) = ', dN2_x_y)
     print('dN3_x_y / det(J) = ', dN3_x_y)
     print('M11_e = ', M11_e)
+
+
+
 
 
 
