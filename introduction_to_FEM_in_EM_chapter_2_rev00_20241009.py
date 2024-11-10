@@ -47,8 +47,8 @@ if False:
     Dy = ep * -v(x, y).diff(y, 1)
 
     # 2D poisson's equation
-    poisson_lhs  = Dx.diff(x, 1) + Dy.diff(y, 1)
-    poisson_rhs  = rho
+    poisson_lhs  = Dx.diff(x, 1) + Dy.diff(y, 1)    # (2. 3)
+    poisson_rhs  = rho                              # (2. 3)
 
     # display
     print(poisson_lhs)
@@ -81,11 +81,14 @@ if False:
 #
 # proper interpolation functions
 #
-# 1) guarantee continuity of the primary unknown quantitiy across interelement boundaries
+# 1) guarantee continuity of the primary unknown quantitiy
+#    across interelement boundaries
 # 2) at least once differentiable, must be complete polynomials
 #    Lagrange polynomials
+
+#-----
+# 2.3.1 linear triangular element
 #
-# linear triangular element
 # the nodes are locally numbered in a CCW direction (Jacobian definition)
 #
 # x y plane -> xi(ξ) eta(η) plane
@@ -94,101 +97,96 @@ if False:
 if True:
 
     # symbols
-    x, y = sp.symbols('x, y')               # position
-    xi, eta = sp.symbols('ξ, η')            # position
+    x, y = sp.symbols('x, y')                   # position
+    xi, eta = sp.symbols('ξ, η')                # natural coordinates
     c1, c2, c3 = sp.symbols('c1, c2, c3')
     
-    # shape function N1
-    N1_xieta = c1 + c2 * xi + c3 * eta
-    
-    N1_xieta_node1 = N1_xieta.subs({xi:0.0, eta:0.0}) - 1.0
-    N1_xieta_node2 = N1_xieta.subs({xi:1.0, eta:0.0})
-    N1_xieta_node3 = N1_xieta.subs({xi:0.0, eta:1.0})
+    u1e, u2e, u3e = sp.symbols('u1e, u2e, u3e')
+    x1e, x2e, x3e = sp.symbols('x1e, x2e, x3e')
+    y1e, y2e, y3e = sp.symbols('y1e, y2e, y3e')
 
+    x21e, x31e = sp.symbols('x21e, x31e')
+    y21e, y31e = sp.symbols('y21e, y31e')
+
+    #--------------------------------------------------------
+    # linear representation of shape function N1: (2.7)
+    N1_xieta = c1 + c2 * xi + c3 * eta
+
+    # substitution: (2.8)
+    N1_xieta_node1 = N1_xieta.subs({xi:0.0, eta:0.0}) - 1.0         # (0, 0)
+    N1_xieta_node2 = N1_xieta.subs({xi:1.0, eta:0.0})               # (1, 0)
+    N1_xieta_node3 = N1_xieta.subs({xi:0.0, eta:1.0})               # (0, 1)
+
+    # solving linear equations
     N1_xieta_eqs = [N1_xieta_node1, N1_xieta_node2, N1_xieta_node3]
     N1_xieta_sol = sp.solve(N1_xieta_eqs, [c1, c2, c3], dict=True)
 
+    # solution (2.9)
     for item in N1_xieta_sol[0].keys():
         N1_xieta = N1_xieta.subs(item, N1_xieta_sol[0][item])
+    print(' (2.9)   N1 = ', N1_xieta)
 
-    # shape function N2
+    #--------------------------------------------------------
+    # linear representation of shape function N2: (2.10)
     N2_xieta = c1 + c2 * xi + c3 * eta
-    
-    N2_xieta_node1 = N2_xieta.subs({xi:0.0, eta:0.0})
-    N2_xieta_node2 = N2_xieta.subs({xi:1.0, eta:0.0}) - 1.0
-    N2_xieta_node3 = N2_xieta.subs({xi:0.0, eta:1.0})
+
+    # substitution: (2.11)
+    N2_xieta_node1 = N2_xieta.subs({xi:0.0, eta:0.0})           # (0, 0)
+    N2_xieta_node2 = N2_xieta.subs({xi:1.0, eta:0.0}) - 1.0     # (1, 0)
+    N2_xieta_node3 = N2_xieta.subs({xi:0.0, eta:1.0})           # (0, 1)
 
     N2_xieta_eqs = [N2_xieta_node1, N2_xieta_node2, N2_xieta_node3]
     N2_xieta_sol = sp.solve(N2_xieta_eqs, [c1, c2, c3], dict=True)
 
+    # solution (2.12)
     for item in N2_xieta_sol[0].keys():
         N2_xieta = N2_xieta.subs(item, N2_xieta_sol[0][item])
+    print(' (2.12)  N2 = ', N2_xieta)
 
-    # shape function N3
+    #--------------------------------------------------------
+    # linear representation of shape function N3: (2.13)
     N3_xieta = c1 + c2 * xi + c3 * eta
-    
-    N3_xieta_node1 = N3_xieta.subs({xi:0.0, eta:0.0})
-    N3_xieta_node2 = N3_xieta.subs({xi:1.0, eta:0.0})
-    N3_xieta_node3 = N3_xieta.subs({xi:0.0, eta:1.0}) - 1.0
+
+    # substitution: (2.14)
+    N3_xieta_node1 = N3_xieta.subs({xi:0.0, eta:0.0})           # (0, 0)
+    N3_xieta_node2 = N3_xieta.subs({xi:1.0, eta:0.0})           # (1, 0)
+    N3_xieta_node3 = N3_xieta.subs({xi:0.0, eta:1.0}) - 1.0     # (0, 1)
 
     N3_xieta_eqs = [N3_xieta_node1, N3_xieta_node2, N3_xieta_node3]
     N3_xieta_sol = sp.solve(N3_xieta_eqs, [c1, c2, c3], dict=True)
 
+    # solution (2.15)
     for item in N3_xieta_sol[0].keys():
         N3_xieta = N3_xieta.subs(item, N3_xieta_sol[0][item])
-       
-    # print
-    print('N1_xieta = ', N1_xieta)
-    print('N2_xieta = ',N2_xieta)
-    print('N3_xieta = ',N3_xieta)
-    print('')
+    print(' (2.15)  N3 = ', N3_xieta)
 
+    #--------------------------------------------------------
+    # interpolation of x, y coordinates: (2.21)
 
-#
-# arbitrary point (ξ, η) inside the master triangle
-#
-
-if True:
-
-    # symbols
-    x1_e, x2_e, x3_e = sp.symbols('x1_e, x2_e, x3_e')
-    y1_e, y2_e, y3_e = sp.symbols('y1_e, y2_e, y3_e')
+    x_e = x1e * N1_xieta + x2e * N2_xieta + x3e * N3_xieta
+    x_e = x_e.expand()
+    x_e = x_e.collect(xi)
+    x_e = x_e.subs(1.0*x2e-1.0*x1e, x21e)
+    x_e = x_e.collect(eta)
+    x_e = x_e.subs(1.0*x3e-1.0*x1e, x31e)
     
-    # primary unknown quantity
-    x = x1_e *  N1_xieta + x2_e *  N2_xieta + x3_e *  N3_xieta
-    y = y1_e *  N1_xieta + y2_e *  N2_xieta + y3_e *  N3_xieta
+    y_e = y1e * N1_xieta + y2e * N2_xieta + y3e * N3_xieta
+    y_e = y_e.expand()
+    y_e = y_e.collect(xi)
+    y_e = y_e.subs(1.0*y2e-1.0*y1e, y21e)
+    y_e = y_e.collect(eta)
+    y_e = y_e.subs(1.0*y3e-1.0*y1e, y31e)
 
-    x = x.expand()
-    y = y.expand()
-
-    #
-    x_xi = x.coeff(xi)
-    x_eta = x.coeff(eta)
-    x_const = x - x_xi * xi - x_eta * eta
-    x_const = x_const.simplify()
-
-    #
-    y_xi = y.coeff(xi)
-    y_eta = y.coeff(eta)
-    y_const = y - y_xi * xi - y_eta * eta
-    y_const = y_const.simplify()
-    
-    #
-    print('x_const = ', x_const)
-    print('x_xi coeff = ', x_xi)
-    print('x_eta coeff = ', x_eta)
-    print('')
-    print('y_const = ', y_const)
-    print('y_xi coeff = ', y_xi)
-    print('y_eta coeff = ', y_eta)
+    print(' (2.22)  x = ', x_e)
+    print(' (2.22)  y = ', y_e)
     print('')
 
 
-#
-# bilinear quadrilateral element
+#-----
+# 2.3.2 bilinear quadrilateral element
 #
 
-if True:
+if False:
 
     # symbols
     x, y = sp.symbols('x, y')                           #
@@ -271,7 +269,7 @@ if True:
 # arbitrary point (ξ, η) inside the master quadrilateral element
 #
 
-if True:
+if False:
 
     # symbols
     x1_e, x2_e, x3_e, x4_e = sp.symbols('x1_e, x2_e, x3_e, x4_e')
@@ -314,8 +312,7 @@ if True:
     print('y_xieta coeff = ', y_xieta)
     print('')
 
-
-
+    
 #==================================================
 # 2.4 METHOD OF WEIGHTED RESIDUAL: THE GALERKIN APPROACH
 #
@@ -360,9 +357,9 @@ if False:
     print('element residual_w = ', element_residual_w)
     print('identity_x_lhs = ', identity_x_lhs)
     print('identity_x_rhs = ', identity_x_rhs)
+    
 
-
-
+    
 #==================================================
 # 2.5 EVALUATION OF ELEMENT MATRICES AND VECTORS
 #
@@ -442,6 +439,9 @@ if True:
     x1_e, x2_e, x3_e = sp.symbols('x1_e, x2_e, x3_e')
     y1_e, y2_e, y3_e = sp.symbols('y1_e, y2_e, y3_e')
 
+    x12_e, x23_e, x31_e = sp.symbols('x12_e, x23_e, x31_e')
+    y12_e, y23_e, y31_e = sp.symbols('y12_e, y23_e, y31_e')
+
     ax, ay = sp.symbols('ax, ay')
 
     xi, eta = sp.symbols('xi, eta')
@@ -454,6 +454,8 @@ if True:
     # x, y coordinates of any point inside an element
     x = N1 * x1_e + N2 * x2_e + N3 * x3_e
     x = x.expand()
+    x = x.subs(x1_e - x2_e, x12_e)
+    print(x.free_symbols)
     y = N1 * y1_e + N2 * y2_e + N3 * y3_e
     y = y.expand()
     
@@ -500,36 +502,49 @@ if True:
     M11_e = M11_e.ratsimp()
 
     #
-    M11_e_sym = M11_e.free_symbols
-    M11_e_sym = {ax, ay}
+    M11_e_sym = {}
+    M11_e_sym[ax] = 0.0
+    M11_e_sym[ay] = 0.0
 
-    for sym in M11_e_sym:
-        print(sym, M11_e.factor(sym))
-        print(sym, M11_e.coeff(sym))
-        print(sym, M11_e.coeff(sym).factor())
+    for sym in M11_e_sym.keys():
+        M11_e_sym[sym] = M11_e.factor(sym)
+        M11_e_sym[sym] = M11_e.coeff(sym)
+        M11_e_sym[sym] = M11_e.coeff(sym).factor()
+        M11_e_sym[sym] = M11_e_sym[sym].subs(x1_e-x2_e, x12_e)
+        M11_e_sym[sym] = M11_e_sym[sym].subs(x2_e-x3_e, x23_e)
+        M11_e_sym[sym] = M11_e_sym[sym].subs(x3_e-x1_e, x31_e)
+        M11_e_sym[sym] = M11_e_sym[sym].subs(y1_e-y2_e, y12_e)
+        M11_e_sym[sym] = M11_e_sym[sym].subs(y2_e-y3_e, y23_e)
+        M11_e_sym[sym] = M11_e_sym[sym].subs(y3_e-y1_e, y31_e)
 
-    print('')
+    print(M11_e_sym)
     
                   
     # display
-    print('shape function N1 = ', N1)
-    print('shape function N2 = ', N2)
-    print('shape function N3 = ', N3)
-    print('x = ', x)
-    print('x_xi = ', x_xi)
-    print('x_eta = ', x_eta)
-    print('x_const = ', x_const)
-    print('y = ', y)
-    print('y_xi = ', y_xi)
-    print('y_eta = ', y_eta)
-    print('y_const = ', y_const)
-    print('J = ', J)
-    print('J^-1 * det(J) = ', Jinv)
-    print('det(J) = ', det_J)
-    print('dN1_x_y / det(J) = ', dN1_x_y)
-    print('dN2_x_y / det(J) = ', dN2_x_y)
-    print('dN3_x_y / det(J) = ', dN3_x_y)
-    print('M11_e = ', M11_e)
+    if False:
+        print('shape function N1 = ', N1)
+        print('shape function N2 = ', N2)
+        print('shape function N3 = ', N3)
+        print('x = ', x)
+        print('x_xi = ', x_xi)
+        print('x_eta = ', x_eta)
+        print('x_const = ', x_const)
+        print('y = ', y)
+        print('y_xi = ', y_xi)
+        print('y_eta = ', y_eta)
+        print('y_const = ', y_const)
+        print('J = ', J)
+        print('J^-1 * det(J) = ', Jinv)
+        print('det(J) = ', det_J)
+        print('dN1_x_y / det(J) = ', dN1_x_y)
+        print('dN2_x_y / det(J) = ', dN2_x_y)
+        print('dN3_x_y / det(J) = ', dN3_x_y)
+        print('M11_e = ', M11_e)
+
+
+
+
+
 
 
 
