@@ -94,7 +94,7 @@ if False:
 # x y plane -> xi(ξ) eta(η) plane
 #
 
-if True:
+if False:
 
     # symbols
     x, y = sp.symbols('x, y')                   # position
@@ -186,68 +186,89 @@ if True:
 # 2.3.2 bilinear quadrilateral element
 #
 
-if False:
+if True:
 
     # symbols
     x, y = sp.symbols('x, y')                           #
     xi, eta = sp.symbols('ξ, η')                        # natural coordinate system
     c1, c2, c3, c4 = sp.symbols('c1, c2, c3, c4')       #
 
-    # shape function N1
-    N1_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+    # rational
+    pos_m1 = sp.Rational(-1.0, +1.0)
+    pos_p1 = sp.Rational(+1.0, +1.0)
+    val_p1 = sp.Rational(+1.0, +1.0)
     
-    N1_xieta_node1 = N1_xieta.subs({xi:-1.0, eta:-1.0}) - 1.0
-    N1_xieta_node2 = N1_xieta.subs({xi:+1.0, eta:-1.0})
-    N1_xieta_node3 = N1_xieta.subs({xi:+1.0, eta:+1.0})
-    N1_xieta_node4 = N1_xieta.subs({xi:-1.0, eta:+1.0})
+    #--------------------------------------------------------
+    # representation of bilinear quadrilateral shape function N1: (2.24)
+    b_N1_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
 
-    N1_xieta_eqs = [N1_xieta_node1, N1_xieta_node2, N1_xieta_node3, N1_xieta_node4]
-    N1_xieta_sol = sp.solve(N1_xieta_eqs, [c1, c2, c3, c4], dict=True)
+    # substitution (2.25) (2.26)
+    b_N1_xieta_node1 = b_N1_xieta.subs({xi:pos_m1, eta:pos_m1}) - val_p1
+    b_N1_xieta_node2 = b_N1_xieta.subs({xi:pos_p1, eta:pos_m1})
+    b_N1_xieta_node3 = b_N1_xieta.subs({xi:pos_p1, eta:pos_p1})
+    b_N1_xieta_node4 = b_N1_xieta.subs({xi:pos_m1, eta:pos_p1})
 
-    for item in N1_xieta_sol[0].keys():
-        N1_xieta = N1_xieta.subs(item, N1_xieta_sol[0][item])
+    b_N1_xieta_eqs = [b_N1_xieta_node1, b_N1_xieta_node2, b_N1_xieta_node3, b_N1_xieta_node4]
+    b_N1_xieta_sol = sp.solve(b_N1_xieta_eqs, [c1, c2, c3, c4], dict=True)
 
-    N1_xieta = N1_xieta.factor()
+    # solution (2.27) (2.28)
+    for item in b_N1_xieta_sol[0].keys():
+        b_N1_xieta = b_N1_xieta.subs(item, b_N1_xieta_sol[0][item])
 
-    # shape function N2
-    N2_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+    # solution (2.29) (2.30)
+    b_N1_xieta = b_N1_xieta.factor()
+    print(' (2.29)  b_N1_xieta = ', b_N1_xieta)
+
+    #--------------------------------------------------------
+    # representation of bilinear quadrilateral shape function N2
+    b_N2_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+
+    # substitution
+    b_N2_xieta_node1 = b_N2_xieta.subs({xi:pos_m1, eta:pos_m1})
+    b_N2_xieta_node2 = b_N2_xieta.subs({xi:pos_p1, eta:pos_m1}) - val_p1
+    b_N2_xieta_node3 = b_N2_xieta.subs({xi:pos_p1, eta:pos_p1})
+    b_N2_xieta_node4 = b_N2_xieta.subs({xi:pos_m1, eta:pos_p1})
+
+    b_N2_xieta_eqs = [b_N2_xieta_node1, b_N2_xieta_node2, b_N2_xieta_node3, b_N2_xieta_node4]
+    b_N2_xieta_sol = sp.solve(b_N2_xieta_eqs, [c1, c2, c3, c4], dict=True)
+
+    # solution 
+    for item in b_N2_xieta_sol[0].keys():
+        b_N2_xieta = b_N2_xieta.subs(item, b_N2_xieta_sol[0][item])
+
+    # solution (2.30)
+    b_N2_xieta = b_N2_xieta.factor()
+    print(' (2.30)  b_N2_xieta = ', b_N2_xieta)
+
+    #--------------------------------------------------------
+    # representation of bilinear quadrilateral shape function N3
+    b_N3_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
+
+    # substitution
+    b_N3_xieta_node1 = b_N3_xieta.subs({xi:pos_m1, eta:pos_m1})
+    b_N3_xieta_node2 = b_N3_xieta.subs({xi:pos_p1, eta:pos_m1})
+    b_N3_xieta_node3 = b_N3_xieta.subs({xi:pos_p1, eta:pos_p1}) - val_p1
+    b_N3_xieta_node4 = b_N3_xieta.subs({xi:pos_m1, eta:pos_p1})
+
+    # solution
+    b_N3_xieta_eqs = [b_N3_xieta_node1, b_N3_xieta_node2, b_N3_xieta_node3, b_N3_xieta_node4]
+    b_N3_xieta_sol = sp.solve(b_N3_xieta_eqs, [c1, c2, c3, c4], dict=True)
+
+    for item in b_N3_xieta_sol[0].keys():
+        b_N3_xieta = b_N3_xieta.subs(item, b_N3_xieta_sol[0][item])
+
+    # solution (2.30)
+    b_N3_xieta = b_N3_xieta.factor()
+    print(' (2.30)  b_N3_xieta = ', b_N3_xieta)
+
+    #--------------------------------------------------------
+    # representation of bilinear quadrilateral shape function N4
+    b_N4_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
     
-    N2_xieta_node1 = N2_xieta.subs({xi:-1.0, eta:-1.0})
-    N2_xieta_node2 = N2_xieta.subs({xi:+1.0, eta:-1.0}) - 1.0
-    N2_xieta_node3 = N2_xieta.subs({xi:+1.0, eta:+1.0})
-    N2_xieta_node4 = N2_xieta.subs({xi:-1.0, eta:+1.0})
-
-    N2_xieta_eqs = [N2_xieta_node1, N2_xieta_node2, N2_xieta_node3, N2_xieta_node4]
-    N2_xieta_sol = sp.solve(N2_xieta_eqs, [c1, c2, c3, c4], dict=True)
-
-    for item in N2_xieta_sol[0].keys():
-        N2_xieta = N2_xieta.subs(item, N2_xieta_sol[0][item])
-
-    N2_xieta = N2_xieta.factor()
-
-    # shape function N3
-    N3_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
-    
-    N3_xieta_node1 = N3_xieta.subs({xi:-1.0, eta:-1.0})
-    N3_xieta_node2 = N3_xieta.subs({xi:+1.0, eta:-1.0})
-    N3_xieta_node3 = N3_xieta.subs({xi:+1.0, eta:+1.0}) - 1.0
-    N3_xieta_node4 = N3_xieta.subs({xi:-1.0, eta:+1.0})
-
-    N3_xieta_eqs = [N3_xieta_node1, N3_xieta_node2, N3_xieta_node3, N3_xieta_node4]
-    N3_xieta_sol = sp.solve(N3_xieta_eqs, [c1, c2, c3, c4], dict=True)
-
-    for item in N3_xieta_sol[0].keys():
-        N3_xieta = N3_xieta.subs(item, N3_xieta_sol[0][item])
-
-    N3_xieta = N3_xieta.factor()
-
-    # shape function N4
-    N4_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
-    
-    N4_xieta_node1 = N4_xieta.subs({xi:-1.0, eta:-1.0})
-    N4_xieta_node2 = N4_xieta.subs({xi:+1.0, eta:-1.0})
-    N4_xieta_node3 = N4_xieta.subs({xi:+1.0, eta:+1.0})
-    N4_xieta_node4 = N4_xieta.subs({xi:-1.0, eta:+1.0}) - 1.0
+    b_N4_xieta_node1 = b_N4_xieta.subs({xi:pos_m1, eta:pos_m1})
+    b_N4_xieta_node2 = b_N4_xieta.subs({xi:pos_p1, eta:pos_m1})
+    b_N4_xieta_node3 = b_N4_xieta.subs({xi:pos_p1, eta:pos_p1})
+    b_N4_xieta_node4 = b_N4_xieta.subs({xi:pos_m1, eta:pos_p1}) - val_p1
 
     N4_xieta_eqs = [N4_xieta_node1, N4_xieta_node2, N4_xieta_node3, N4_xieta_node4]
     N4_xieta_sol = sp.solve(N4_xieta_eqs, [c1, c2, c3, c4], dict=True)
@@ -540,6 +561,7 @@ if True:
         print('dN2_x_y / det(J) = ', dN2_x_y)
         print('dN3_x_y / det(J) = ', dN3_x_y)
         print('M11_e = ', M11_e)
+
 
 
 
