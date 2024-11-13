@@ -161,6 +161,7 @@ if False:
     print(' (2.15)  N3 = ', N3_xieta)
 
     #--------------------------------------------------------
+    # arbitrary point (ξ, η) inside the master triangluer element
     # interpolation of x, y coordinates: (2.21)
 
     x_e = x1e * N1_xieta + x2e * N2_xieta + x3e * N3_xieta
@@ -192,6 +193,10 @@ if True:
     x, y = sp.symbols('x, y')                           #
     xi, eta = sp.symbols('ξ, η')                        # natural coordinate system
     c1, c2, c3, c4 = sp.symbols('c1, c2, c3, c4')       #
+
+    u1e, u2e, u3e, u4e = sp.symbols('u1e, u2e, u3e, u4e')
+    x1e, x2e, x3e, x4e = sp.symbols('x1e, x2e, x3e, x4e')
+    y1e, y2e, y3e, y4e = sp.symbols('y1e, y2e, y3e, y4e')
 
     # rational
     pos_m1 = sp.Rational(-1.0, +1.0)
@@ -264,81 +269,80 @@ if True:
     #--------------------------------------------------------
     # representation of bilinear quadrilateral shape function N4
     b_N4_xieta = c1 + c2 * xi + c3 * eta + c4 * xi * eta
-    
+
+    # substitution    
     b_N4_xieta_node1 = b_N4_xieta.subs({xi:pos_m1, eta:pos_m1})
     b_N4_xieta_node2 = b_N4_xieta.subs({xi:pos_p1, eta:pos_m1})
     b_N4_xieta_node3 = b_N4_xieta.subs({xi:pos_p1, eta:pos_p1})
     b_N4_xieta_node4 = b_N4_xieta.subs({xi:pos_m1, eta:pos_p1}) - val_p1
 
-    N4_xieta_eqs = [N4_xieta_node1, N4_xieta_node2, N4_xieta_node3, N4_xieta_node4]
-    N4_xieta_sol = sp.solve(N4_xieta_eqs, [c1, c2, c3, c4], dict=True)
+    # solution
+    b_N4_xieta_eqs = [b_N4_xieta_node1, b_N4_xieta_node2, b_N4_xieta_node3, b_N4_xieta_node4]
+    b_N4_xieta_sol = sp.solve(b_N4_xieta_eqs, [c1, c2, c3, c4], dict=True)
 
-    for item in N4_xieta_sol[0].keys():
-        N4_xieta = N4_xieta.subs(item, N4_xieta_sol[0][item])
+    for item in b_N4_xieta_sol[0].keys():
+        b_N4_xieta = b_N4_xieta.subs(item, b_N4_xieta_sol[0][item])
 
-    N4_xieta = N4_xieta.factor()
+    # solution (2.30)
+    b_N4_xieta = b_N4_xieta.factor()
+    print(' (2.30)  b_N4_xieta = ', b_N4_xieta)
 
-    # display
-    print('N1_xieta = ', N1_xieta)
-    print('N2_xieta = ', N2_xieta)
-    print('N3_xieta = ', N3_xieta)
-    print('N4_xieta = ', N4_xieta)
+    #--------------------------------------------------------
+    # arbitrary point (ξ, η) inside the master quadrilateral element
+    # interpolation of x, y coordinates: (2.32)
+
+    b_x_e = x1e * b_N1_xieta + x2e * b_N2_xieta + x3e * b_N3_xieta + x4e * b_N4_xieta
+    b_x_e = b_x_e.expand()
+    b_x_e_xieta = b_x_e.collect(xi*eta)
+    b_x_e_xieta = b_x_e_xieta.coeff(xi*eta)
+    b_x_e = b_x_e - b_x_e_xieta*xi*eta
+    b_x_e = b_x_e.expand()
+    b_x_e_xi = b_x_e.collect(xi)
+    b_x_e_xi = b_x_e_xi.coeff(xi)
+    b_x_e = b_x_e - b_x_e_xi*xi
+    b_x_e = b_x_e.expand()
+    b_x_e_eta = b_x_e.collect(eta)
+    b_x_e_eta = b_x_e_eta.coeff(eta)
+    b_x_e = b_x_e - b_x_e_eta*eta
+    b_x_e_const = b_x_e.expand()
+    b_x_e = b_x_e - b_x_e_const
+    b_x_e = b_x_e.expand()
+
+    b_y_e = y1e * b_N1_xieta + y2e * b_N2_xieta + y3e * b_N3_xieta + y4e * b_N4_xieta
+    b_y_e = b_y_e.expand()
+    b_y_e_xieta = b_y_e.collect(xi*eta)
+    b_y_e_xieta = b_y_e_xieta.coeff(xi*eta)
+    b_y_e = b_y_e - b_y_e_xieta * xi * eta
+    b_y_e = b_y_e.expand()
+    b_y_e_xi = b_y_e.collect(xi)
+    b_y_e_xi = b_y_e_xi.coeff(xi)
+    b_y_e = b_y_e - b_y_e_xi * xi
+    b_y_e = b_y_e.expand()
+    b_y_e_eta = b_y_e.collect(eta)
+    b_y_e_eta = b_y_e_eta.coeff(eta)
+    b_y_e = b_y_e - b_y_e_eta * eta
+    b_y_e_const = b_y_e.expand()
+    b_y_e = b_y_e - b_y_e_const
+    b_y_e = b_y_e.expand()
+
+    print(' (2.32)  x = ', b_x_e)
+    print(' (2.32)  x_xieta = ', b_x_e_xieta)
+    print(' (2.32)  x_xi = ', b_x_e_xi)
+    print(' (2.32)  x_eta = ', b_x_e_eta)
+    print(' (2.32)  x_const = ', b_x_e_const)
+    print(' (2.32)  y = ', b_y_e)
+    print(' (2.32)  y_xieta = ', b_y_e_xieta)
+    print(' (2.32)  y_xi = ', b_y_e_xi)
+    print(' (2.32)  y_eta = ', b_y_e_eta)
+    print(' (2.32)  y_const = ', b_y_e_const)
     print('')
 
 
-#
-# arbitrary point (ξ, η) inside the master quadrilateral element
-#
-
-if False:
-
-    # symbols
-    x1_e, x2_e, x3_e, x4_e = sp.symbols('x1_e, x2_e, x3_e, x4_e')
-    y1_e, y2_e, y3_e, y4_e = sp.symbols('y1_e, y2_e, y3_e, y4_e')
-    
-    # primary unknown quantity
-    x = x1_e *  N1_xieta + x2_e *  N2_xieta + x3_e *  N3_xieta + x4_e *  N4_xieta
-    y = y1_e *  N1_xieta + y2_e *  N2_xieta + y3_e *  N3_xieta + y4_e *  N4_xieta
-
-    x = x.expand()
-    y = y.expand()
-
-    #
-    x_xieta = x.coeff(xi*eta)
-    x_temp = x - x_xieta * xi * eta
-    x_temp = x_temp.simplify()
-    x_xi = x_temp.coeff(xi)
-    x_eta = x_temp.coeff(eta)
-    x_const = x_temp - x_xi * xi - x_eta * eta
-    x_const = x_const.simplify()
-
-    #
-    y_xieta = y.coeff(xi*eta)
-    y_temp = y - y_xieta * xi * eta
-    y_temp = y_temp.simplify()
-    y_xi = y_temp.coeff(xi)
-    y_eta = y_temp.coeff(eta)
-    y_const = y_temp - y_xi * xi - y_eta * eta
-    y_const = y_const.simplify()
-    
-    #
-    print('x_const = ', x_const)
-    print('x_xi coeff = ', x_xi)
-    print('x_eta coeff = ', x_eta)
-    print('x_xieta coeff = ', x_xieta)
-    print('')
-    print('y_const = ', y_const)
-    print('y_xi coeff = ', y_xi)
-    print('y_eta coeff = ', y_eta)
-    print('y_xieta coeff = ', y_xieta)
-    print('')
-
-    
 #==================================================
 # 2.4 METHOD OF WEIGHTED RESIDUAL: THE GALERKIN APPROACH
 #
 # weak formulation of the problem
-#   -> constructing the weighted residual for a single element with domain
+#   -> constructing the weighted residual for a single element with domain omega_e
 #
 # minimizing element residual
 #   -> multiplying element residual with a weight function
